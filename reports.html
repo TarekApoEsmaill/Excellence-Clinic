@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير — عيادة التميز</title>
+    <link rel="stylesheet" href="./assets/css/init.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="./assets/css/animation.css">
+    <link rel="stylesheet" href="./assets/css/media.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        .notif-panel{display:none;position:absolute;top:44px;left:0;width:340px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:500;animation:scaleIn .2s ease both;overflow:hidden;}
+        .notif-panel.open{display:block;}
+        .notif-badge-dot{position:absolute;top:7px;left:7px;min-width:16px;height:16px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:50px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid #fff;}
+        .progress-bar{height:8px;background:var(--border);border-radius:var(--radius-full);overflow:hidden;margin-top:6px;}
+        .progress-fill{height:100%;border-radius:var(--radius-full);transition:width .6s ease;}
+        .metric-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light);}
+        .metric-row:last-child{border-bottom:none;}
+        .log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-light);}
+        .log-item:last-child{border-bottom:none;}
+        .log-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+        .analytics-row{display:grid;grid-template-columns:1fr 320px;gap:14px;}
+        @media(max-width:900px){.analytics-row{grid-template-columns:1fr;}}
+        .report-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+        @media(max-width:1024px){.report-cards{grid-template-columns:repeat(2,1fr);}}
+        @media(max-width:640px){.report-cards{grid-template-columns:1fr;}}
+        .report-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;gap:10px;transition:all var(--transition);}
+        .report-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-2px);}
+        .report-card-icon{width:44px;height:44px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;}
+        .report-card-icon svg{width:22px;height:22px;}
+        .report-card-icon.blue{background:var(--primary-light);}
+        .report-card-icon.blue svg{color:var(--primary);}
+        .report-card-icon.green{background:var(--success-bg);}
+        .report-card-icon.green svg{color:var(--success);}
+        .report-card-icon.orange{background:var(--warning-bg);}
+        .report-card-icon.orange svg{color:var(--warning);}
+        .report-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-muted);padding-top:6px;border-top:1px solid var(--border-light);}
+    </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon"><img src="./assets/imgs/loogoo.jpeg" alt=""></div>
+        <div class="logo-text"><h2 class="js-clinic-name">عيادة التميز</h2><p class="js-doctor-name">د. أحمد محمد</p></div>
+    </div>
+    <span class="nav-label">القائمة الرئيسية</span>
+    <nav class="sidebar-nav">
+        <a href="index.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z"/></svg><span>الرئيسية</span></a>
+        <a href="patients.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg><span>المرضى</span></a>
+        <a href="appointments.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg><span>المواعيد</span><span class="notif-count js-apt-count" style="display:none"></span></a>
+        <a href="reports.html" class="active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7v2m3-4H7v-2h10v2m0-4H7V7h10v2"/></svg><span>التقارير</span></a>
+        <a href="settings.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.47.47 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"/></svg><span>الإعدادات</span></a>
+    </nav>
+    <a href="appointments.html" class="sidebar-new-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg><span>موعد جديد</span></a>
+    <div class="sidebar-bottom">
+        <span class="nav-label">الحساب</span>
+        <a href="settings.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 17.93V18h-2v1.93A8 8 0 0 1 4.07 13H6v-2H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 19.93"/></svg><span>المساعدة</span></a>
+        <a href="#" class="logout"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4z"/></svg><span>تسجيل الخروج</span></a>
+    </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main-wrapper">
+    <header class="topbar">
+        <button class="topbar-burger" id="burgerBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3zm0-5h18v-2H3zm0-7v2h18V6z"/></svg></button>
+        <div class="topbar-search">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg>
+                <input type="text" id="globalSearch" placeholder="البحث في التقارير…">
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div style="position:relative;">
+                <button class="topbar-icon-btn" id="notifBtn" title="الإشعارات">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2m6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z"/></svg>
+                    <span class="notif-badge-dot js-notif-badge">0</span>
+                </button>
+                <div class="notif-panel" id="notifPanel"></div>
+            </div>
+            <a href="settings.html" class="topbar-icon-btn" title="الإعدادات">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.47.47 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"/></svg>
+            </a>
+            <div class="topbar-divider"></div>
+            <a href="settings.html" class="topbar-user">
+                <div class="avatar"><img src="./assets/imgs/unnamed.png" alt=""></div>
+                <div class="user-info"><div class="name js-doctor-name">د. أحمد محمد</div><div class="role">مدير النظام</div></div>
+            </a>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        <div class="page-header">
+            <div class="page-title"><h1>التقارير والتحليلات</h1><p>نظرة شاملة على أداء العيادة وإحصاءات النظام</p></div>
+            <div class="header-actions">
+                <select class="filter-select" id="periodFilter">
+                    <option value="month">هذا الشهر</option>
+                    <option value="lastmonth">الشهر الماضي</option>
+                    <option value="3months">آخر 3 أشهر</option>
+                    <option value="year">هذا العام</option>
+                    <option value="all">الكل</option>
+                </select>
+                <button class="btn btn-primary" id="exportAllBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>
+                    <span>تصدير CSV</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon blue"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg></div></div><div class="stat-card-label">إجمالي المرضى</div><div class="stat-card-value" id="kpiPatients">—</div></div>
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon green"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div></div><div class="stat-card-label">المواعيد في الفترة</div><div class="stat-card-value" id="kpiApts">—</div></div>
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19L21 7l-1.4-1.4z"/></svg></div></div><div class="stat-card-label">مواعيد مؤكدة</div><div class="stat-card-value" id="kpiConfirmed">—</div></div>
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon red"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/></svg></div></div><div class="stat-card-label">مواعيد ملغاة</div><div class="stat-card-value" id="kpiCancelled">—</div></div>
+        </div>
+
+        <!-- Report Templates -->
+        <div>
+            <p class="section-label">تقارير جاهزة للتصدير</p>
+            <div class="report-cards">
+                <div class="report-card">
+                    <div class="report-card-icon blue"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg></div>
+                    <h4>تقرير المرضى</h4>
+                    <p>قائمة كاملة بجميع المرضى مع حالاتهم وتخصصاتهم وآخر زياراتهم.</p>
+                    <div class="report-meta">
+                        <span id="patientsReportDate">—</span>
+                        <button class="btn btn-outline btn-sm" id="exportPatientsBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>
+                            تصدير CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-icon green"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+                    <h4>تقرير المواعيد</h4>
+                    <p>تحليل المواعيد المكتملة، الملغاة، والمعاد جدولتها خلال الفترة المحددة.</p>
+                    <div class="report-meta">
+                        <span id="aptsReportDate">—</span>
+                        <button class="btn btn-outline btn-sm" id="exportAptsBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>
+                            تصدير CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-icon orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg></div>
+                    <h4>تقرير النشاطات</h4>
+                    <p>سجل كامل بجميع الإشعارات والأحداث المسجلة في النظام.</p>
+                    <div class="report-meta">
+                        <span id="notifReportDate">—</span>
+                        <button class="btn btn-outline btn-sm" id="exportNotifBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>
+                            تصدير CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="analytics-row">
+            <div class="card">
+                <div class="card-header">
+                    <h3>أداء الأطباء</h3>
+                    <a href="patients.html" class="btn btn-outline btn-sm">عرض المرضى</a>
+                </div>
+                <div class="card-body" id="doctorPerformance" style="display:flex;flex-direction:column;gap:14px;"></div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <!-- Specialty breakdown -->
+                <div class="card">
+                    <div class="card-header"><h3>توزيع التخصصات</h3></div>
+                    <div class="card-body" id="specialtyBreakdown" style="display:flex;flex-direction:column;gap:8px;padding:16px;"></div>
+                </div>
+                <!-- Activity log -->
+                <div class="card">
+                    <div class="card-header"><h3>سجل الأنشطة</h3></div>
+                    <div style="padding:4px 16px 8px;" id="activityLog"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <span>© 2026 عيادة التميز · MedEx Precision. جميع الحقوق محفوظة.</span>
+        <div class="footer-status"><span class="status-dot">حالة النظام: مثالية</span></div>
+    </footer>
+</div>
+
+<button class="float-search" id="floatSearch" title="بحث سريع"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg></button>
+
+<script src="./assets/js/data.js"></script>
+<script src="./assets/js/notifications.js"></script>
+<script src="./assets/js/main.js"></script>
+<script>
+(function () {
+
+    // ── Period filter helper ──────────────────
+    function getDateRange(period) {
+        const now = new Date();
+        const y = now.getFullYear(), m = now.getMonth();
+        switch (period) {
+            case 'month':     return { from: new Date(y, m, 1), to: now };
+            case 'lastmonth': return { from: new Date(y, m-1, 1), to: new Date(y, m, 0) };
+            case '3months':   return { from: new Date(y, m-2, 1), to: now };
+            case 'year':      return { from: new Date(y, 0, 1), to: now };
+            default:          return { from: new Date(2000, 0, 1), to: now };
+        }
+    }
+
+    function inRange(isoDate, range) {
+        const d = new Date(isoDate);
+        return d >= range.from && d <= range.to;
+    }
+
+    // ── Update KPIs ───────────────────────────
+    function updateKPIs(period) {
+        const range = getDateRange(period);
+        const pts   = DB.getPatients();
+        const apts  = DB.getAppointments().filter(a => inRange(a.date, range));
+        document.getElementById('kpiPatients').textContent   = pts.length;
+        document.getElementById('kpiApts').textContent       = apts.length;
+        document.getElementById('kpiConfirmed').textContent  = apts.filter(a => a.status === 'confirmed').length;
+        document.getElementById('kpiCancelled').textContent  = apts.filter(a => a.status === 'cancelled').length;
+    }
+
+    // ── Doctor performance ────────────────────
+    function renderDoctorPerformance(period) {
+        const range = getDateRange(period);
+        const apts  = DB.getAppointments().filter(a => inRange(a.date, range));
+        const map   = {};
+        apts.forEach(a => { map[a.doctor] = (map[a.doctor] || 0) + 1; });
+        const sorted = Object.entries(map).sort((x,y) => y[1]-x[1]);
+        const max = sorted[0]?.[1] || 1;
+        const colors = ['var(--success)', 'var(--primary)', 'var(--warning)', 'var(--info)', 'var(--danger)'];
+        const el = document.getElementById('doctorPerformance');
+        el.innerHTML = '';
+        if (!sorted.length) {
+            el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">لا توجد بيانات في هذه الفترة</div>';
+            return;
+        }
+        sorted.forEach(([doc, count], i) => {
+            const pct = Math.round((count / max) * 100);
+            el.innerHTML += `
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                        <span style="font-size:13px;font-weight:600;">${doc}</span>
+                        <span style="font-size:12px;font-weight:700;color:${colors[i%colors.length]};">${count} موعد</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${colors[i%colors.length]};"></div></div>
+                </div>`;
+        });
+    }
+
+    // ── Specialty breakdown ───────────────────
+    function renderSpecialties() {
+        const pts = DB.getPatients();
+        const map = {};
+        pts.forEach(p => { if (p.specialty) map[p.specialty] = (map[p.specialty]||0) + 1; });
+        const total = pts.length || 1;
+        const colors = ['var(--primary)', 'var(--success)', 'var(--warning)', 'var(--danger)', 'var(--info)'];
+        const el = document.getElementById('specialtyBreakdown');
+        el.innerHTML = '';
+        Object.entries(map).sort((a,b)=>b[1]-a[1]).forEach(([spec, count], i) => {
+            const pct = Math.round((count / total) * 100);
+            el.innerHTML += `
+                <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:12px;color:var(--text-secondary);">${spec}</span>
+                        <span style="font-size:12px;font-weight:600;color:var(--text-primary);">${pct}%</span>
+                    </div>
+                    <div class="progress-bar" style="height:5px;"><div class="progress-fill" style="width:${pct}%;background:${colors[i%colors.length]};"></div></div>
+                </div>`;
+        });
+        if (!Object.keys(map).length) el.innerHTML = '<div style="font-size:13px;color:var(--text-muted);">لا توجد بيانات</div>';
+    }
+
+    // ── Activity log ──────────────────────────
+    function renderActivityLog() {
+        const notifs = DB.getNotifications().slice(0, 6);
+        const el = document.getElementById('activityLog');
+        const dotColor = { success:'var(--success)', danger:'var(--danger)', info:'var(--primary)', warning:'var(--warning)' };
+        el.innerHTML = '';
+        if (!notifs.length) { el.innerHTML = '<div style="padding:16px;font-size:13px;color:var(--text-muted);">لا توجد نشاطات</div>'; return; }
+        notifs.forEach(n => {
+            const diff = Date.now() - new Date(n.time).getTime();
+            const m = Math.floor(diff/60000);
+            const ago = m < 1 ? 'الآن' : m < 60 ? `منذ ${m} دقيقة` : m < 1440 ? `منذ ${Math.floor(m/60)} ساعة` : `منذ ${Math.floor(m/1440)} يوم`;
+            el.innerHTML += `
+                <div class="log-item">
+                    <div class="log-dot" style="background:${dotColor[n.type]||'var(--primary)'};"></div>
+                    <div>
+                        <div style="font-size:13px;color:var(--text-primary);">${n.title}</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${ago}</div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    // ── Report dates ──────────────────────────
+    function updateReportDates() {
+        const today = DB.formatDate(new Date().toISOString().slice(0,10));
+        document.getElementById('patientsReportDate').textContent = today;
+        document.getElementById('aptsReportDate').textContent     = today;
+        document.getElementById('notifReportDate').textContent    = today;
+    }
+
+    // ── CSV export helper ─────────────────────
+    function exportCSV(rows, filename) {
+        const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+        a.download = filename; a.click();
+    }
+
+    // ── Render all with period ────────────────
+    function renderAll(period) {
+        updateKPIs(period);
+        renderDoctorPerformance(period);
+        renderSpecialties();
+        renderActivityLog();
+    }
+
+    // ── Event listeners ───────────────────────
+    document.getElementById('periodFilter').addEventListener('change', function () {
+        renderAll(this.value);
+    });
+
+    document.getElementById('exportAllBtn').addEventListener('click', () => {
+        const period = document.getElementById('periodFilter').value;
+        const range  = getDateRange(period);
+        const pts    = DB.getPatients();
+        const apts   = DB.getAppointments().filter(a => inRange(a.date, range));
+        const today  = new Date().toISOString().slice(0,10);
+        const rows = [
+            ['تقرير عيادة التميز — ' + today],
+            ['الفترة', document.getElementById('periodFilter').options[document.getElementById('periodFilter').selectedIndex].text],
+            [],
+            ['إجمالي المرضى', pts.length, 'المواعيد في الفترة', apts.length],
+            ['مواعيد مؤكدة', apts.filter(a=>a.status==='confirmed').length, 'مواعيد ملغاة', apts.filter(a=>a.status==='cancelled').length],
+            [],
+            ['رقم المريض','الاسم','التخصص','الطبيب','آخر زيارة','الحالة'],
+            ...pts.map(p => [p.id, p.firstName+' '+p.lastName, p.specialty||'', p.doctor||'', p.lastVisit||'', DB.statusLabel(p.status)])
+        ];
+        exportCSV(rows, 'full-report-' + today + '.csv');
+        showToast('تم تصدير التقرير الكامل بنجاح', 'success');
+    });
+
+    document.getElementById('exportPatientsBtn').addEventListener('click', () => {
+        const pts = DB.getPatients();
+        const rows = [
+            ['رقم المريض','الاسم الأول','اسم العائلة','العمر','الجوال','البريد','التخصص','الطبيب','آخر زيارة','الحالة'],
+            ...pts.map(p => [p.id, p.firstName, p.lastName, p.age||'', p.phone||'', p.email||'', p.specialty||'', p.doctor||'', p.lastVisit||'', DB.statusLabel(p.status)])
+        ];
+        exportCSV(rows, 'patients-' + new Date().toISOString().slice(0,10) + '.csv');
+        showToast('تم تصدير بيانات المرضى', 'success');
+    });
+
+    document.getElementById('exportAptsBtn').addEventListener('click', () => {
+        const period = document.getElementById('periodFilter').value;
+        const range  = getDateRange(period);
+        const apts   = DB.getAppointments().filter(a => inRange(a.date, range));
+        const rows = [
+            ['رقم الموعد','اسم المريض','الطبيب','التخصص','التاريخ','الوقت','المدة','النوع','الحالة'],
+            ...apts.map(a => [a.id, a.patientName, a.doctor, a.specialty||'', a.date, a.time, a.duration, a.type||'', DB.statusLabel(a.status)])
+        ];
+        exportCSV(rows, 'appointments-' + new Date().toISOString().slice(0,10) + '.csv');
+        showToast('تم تصدير بيانات المواعيد', 'success');
+    });
+
+    document.getElementById('exportNotifBtn').addEventListener('click', () => {
+        const notifs = DB.getNotifications();
+        const rows = [
+            ['الرقم','العنوان','التفاصيل','النوع','الوقت','مقروء'],
+            ...notifs.map(n => [n.id, n.title, n.body||'', n.type, n.time, n.read ? 'نعم' : 'لا'])
+        ];
+        exportCSV(rows, 'activities-' + new Date().toISOString().slice(0,10) + '.csv');
+        showToast('تم تصدير سجل النشاطات', 'success');
+    });
+
+    // ── Init ──────────────────────────────────
+    renderAll('month');
+    updateReportDates();
+
+})();
+</script>
+</body>
+</html>

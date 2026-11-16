@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المرضى — عيادة التميز</title>
+    <link rel="stylesheet" href="./assets/css/init.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="./assets/css/animation.css">
+    <link rel="stylesheet" href="./assets/css/media.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center;}
+        .modal-backdrop.open{display:flex;}
+        .modal{background:var(--white);border-radius:var(--radius-xl);padding:28px;width:100%;max-width:560px;box-shadow:var(--shadow-lg);animation:scaleIn .2s ease both;max-height:90vh;overflow-y:auto;}
+        .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+        .modal-header h3{font-size:17px;}
+        .modal-close{width:32px;height:32px;border-radius:var(--radius-sm);border:none;background:var(--bg);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--transition);}
+        .modal-close:hover{background:var(--danger-bg);color:var(--danger);}
+        .modal-close svg{width:16px;height:16px;}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+        .form-group{display:flex;flex-direction:column;gap:5px;}
+        .form-group.full{grid-column:1/-1;}
+        .form-group label{font-size:12px;font-weight:600;color:var(--text-secondary);}
+        .form-group input,.form-group select,.form-group textarea{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font);color:var(--text-primary);background:var(--white);transition:border-color var(--transition),box-shadow var(--transition);}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.08);outline:none;}
+        .form-group textarea{resize:vertical;min-height:70px;}
+        .form-error{font-size:11px;color:var(--danger);margin-top:3px;display:none;}
+        .form-group.has-error input,.form-group.has-error select{border-color:var(--danger);}
+        .form-group.has-error .form-error{display:block;}
+        .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-light);}
+        .view-toggle{display:flex;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;}
+        .view-toggle button{width:34px;height:34px;background:transparent;border:none;color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background var(--transition),color var(--transition);}
+        .view-toggle button svg{width:15px;height:15px;}
+        .view-toggle button.active{background:var(--primary);color:var(--white);}
+        .view-toggle button:not(.active):hover{background:var(--bg);}
+        .patients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+        .patient-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;display:flex;flex-direction:column;gap:12px;transition:box-shadow var(--transition),transform var(--transition);}
+        .patient-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+        .patient-card-top{display:flex;align-items:center;gap:12px;}
+        .patient-avatar{width:44px;height:44px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--primary);flex-shrink:0;}
+        .patient-info .p-name{font-size:14px;font-weight:700;color:var(--text-primary);}
+        .patient-info .p-id{font-size:11px;color:var(--text-muted);margin-top:2px;}
+        .patient-details{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+        .p-detail{font-size:12px;color:var(--text-secondary);}
+        .p-detail span{display:block;font-size:11px;color:var(--text-muted);margin-bottom:1px;}
+        .patient-card-actions{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border-light);}
+        .patient-card-actions .btn{flex:1;justify-content:center;}
+        .empty-cell{text-align:center;padding:40px!important;color:var(--text-muted);font-size:13px;}
+        .notif-panel{display:none;position:absolute;top:44px;left:0;width:340px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:500;animation:scaleIn .2s ease both;overflow:hidden;}
+        .notif-panel.open{display:block;}
+        .notif-panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-light);}
+        .notif-panel-header h4{font-size:14px;font-weight:700;}
+        .notif-panel-header button{font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);}
+        .notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background var(--transition);}
+        .notif-item:hover{background:var(--bg);}
+        .notif-item.unread{background:var(--primary-light);}
+        .notif-item:last-child{border-bottom:none;}
+        .notif-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+        .notif-dot.success{background:var(--success);}
+        .notif-dot.danger{background:var(--danger);}
+        .notif-dot.info{background:var(--primary);}
+        .notif-dot.warning{background:var(--warning);}
+        .notif-title{font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.3;}
+        .notif-body{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+        .notif-time{font-size:10px;color:var(--text-muted);margin-top:3px;}
+        .notif-badge-dot{position:absolute;top:7px;left:7px;min-width:16px;height:16px;background:var(--danger);color:var(--white);font-size:10px;font-weight:700;border-radius:50px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--white);}
+    </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">
+            <img src="./assets/imgs/loogoo.jpeg" alt="">
+        </div>
+        <div class="logo-text">
+            <h2 class="js-clinic-name">عيادة التميز</h2>
+            <p class="js-doctor-name">د. أحمد محمد</p>
+        </div>
+    </div>
+    <span class="nav-label">القائمة الرئيسية</span>
+    <nav class="sidebar-nav">
+        <a href="index.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z"/></svg><span>الرئيسية</span></a>
+        <a href="patients.html" class="active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg><span>المرضى</span></a>
+        <a href="appointments.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg><span>المواعيد</span><span class="notif-count js-apt-count" style="display:none"></span></a>
+        <a href="reports.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7v2m3-4H7v-2h10v2m0-4H7V7h10v2"/></svg><span>التقارير</span></a>
+        <a href="settings.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.47.47 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"/></svg><span>الإعدادات</span></a>
+    </nav>
+    <a href="appointments.html" class="sidebar-new-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+        <span>موعد جديد</span>
+    </a>
+    <div class="sidebar-bottom">
+        <span class="nav-label">الحساب</span>
+        <a href="settings.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 17.93V18h-2v1.93A8 8 0 0 1 4.07 13H6v-2H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 19.93"/></svg><span>المساعدة</span></a>
+        <a href="#" class="logout" id="logoutBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4z"/></svg><span>تسجيل الخروج</span></a>
+    </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main-wrapper">
+    <header class="topbar">
+        <button class="topbar-burger" id="burgerBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3zm0-5h18v-2H3zm0-7v2h18V6z"/></svg></button>
+        <div class="topbar-search">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg>
+                <input type="text" id="globalSearch" placeholder="ابحث في المرضى…">
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div style="position:relative;">
+                <button class="topbar-icon-btn" id="notifBtn" title="الإشعارات">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2m6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z"/></svg>
+                    <span class="notif-badge-dot js-notif-badge" style="display:none">0</span>
+                </button>
+                <div class="notif-panel" id="notifPanel"></div>
+            </div>
+            <a href="settings.html" class="topbar-icon-btn" title="الإعدادات">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.47.47 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"/></svg>
+            </a>
+            <div class="topbar-divider"></div>
+            <a href="settings.html" class="topbar-user">
+                <div class="avatar"><img src="./assets/imgs/unnamed.png" alt=""></div>
+                <div class="user-info">
+                    <div class="name js-doctor-name">د. أحمد محمد</div>
+                    <div class="role">مدير النظام</div>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="page-header">
+            <div class="page-title"><h1>المرضى</h1><p>إدارة سجلات وبيانات جميع المرضى المسجلين</p></div>
+            <div class="header-actions">
+                <button class="btn btn-outline" id="exportBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>
+                    <span>تصدير CSV</span>
+                </button>
+                <button class="btn btn-primary" id="addPatientBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+                    <span>إضافة مريض</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon blue"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg></div></div><div class="stat-card-label">إجمالي المرضى</div><div class="stat-card-value" id="statTotal">—</div></div>
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon green"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2L4.8 12l-1.4 1.4L9 19L21 7l-1.4-1.4z"/></svg></div></div><div class="stat-card-label">مرضى نشطون</div><div class="stat-card-value" id="statActive">—</div></div>
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon orange"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2M12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8m.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67z"/></svg></div></div><div class="stat-card-label">قيد المراجعة</div><div class="stat-card-value" id="statPending">—</div></div>
+            <div class="stat-card"><div class="stat-card-top"><div class="stat-card-icon red"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/></svg></div></div><div class="stat-card-label">غير نشطين</div><div class="stat-card-value" id="statInactive">—</div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>قائمة المرضى</h3>
+                <div class="filters-bar">
+                    <div class="search-input-wrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg>
+                        <input type="text" id="tableSearch" placeholder="ابحث بالاسم أو الرقم أو التخصص…">
+                    </div>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">جميع الحالات</option>
+                        <option value="active">نشط</option>
+                        <option value="inactive">غير نشط</option>
+                        <option value="pending">قيد المراجعة</option>
+                    </select>
+                    <select class="filter-select" id="specFilter">
+                        <option value="">جميع التخصصات</option>
+                        <option value="طب أطفال">طب أطفال</option>
+                        <option value="القلب والأوعية">القلب</option>
+                        <option value="الجراحة العامة">الجراحة</option>
+                        <option value="طب الأسرة">طب الأسرة</option>
+                        <option value="طب العيون">طب العيون</option>
+                    </select>
+                    <div class="view-toggle">
+                        <button class="active" id="tableViewBtn" title="جدول"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h2v-2H3zm0 4h2v-2H3zm0-8h2V7H3zm4 4h14v-2H7zm0 4h14v-2H7zM7 7v2h14V7z"/></svg></button>
+                        <button id="gridViewBtn" title="شبكة"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tableView" style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead><tr><th>المريض</th><th>العمر</th><th>التخصص</th><th>الطبيب المعالج</th><th>آخر زيارة</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+                    <tbody id="patientsTableBody"></tbody>
+                </table>
+            </div>
+            <div id="gridView" style="display:none;padding:16px;">
+                <div class="patients-grid" id="patientsGrid"></div>
+            </div>
+            <div class="table-footer">
+                <span class="table-info" id="tableInfo">—</span>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <span>© 2026 عيادة التميز · MedEx Precision. جميع الحقوق محفوظة.</span>
+        <div class="footer-status"><span class="status-dot">حالة النظام: مثالية</span></div>
+    </footer>
+</div>
+
+<!-- Patient Modal -->
+<div class="modal-backdrop" id="patientModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modalTitle">إضافة مريض جديد</h3>
+            <button class="modal-close" id="closeModal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/></svg></button>
+        </div>
+        <form id="patientForm" novalidate>
+            <input type="hidden" id="editPatientId">
+            <div class="form-grid">
+                <div class="form-group" id="fgFirstName"><label>الاسم الأول *</label><input type="text" id="fFirstName" placeholder="مثال: نورة"><span class="form-error">الاسم الأول مطلوب</span></div>
+                <div class="form-group" id="fgLastName"><label>اسم العائلة *</label><input type="text" id="fLastName" placeholder="مثال: السالم"><span class="form-error">اسم العائلة مطلوب</span></div>
+                <div class="form-group" id="fgPhone"><label>رقم الجوال *</label><input type="tel" id="fPhone" placeholder="05xxxxxxxx"><span class="form-error">رقم الجوال مطلوب</span></div>
+                <div class="form-group"><label>العمر</label><input type="number" id="fAge" min="0" max="120" placeholder="السن بالسنوات"></div>
+                <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="fEmail" placeholder="example@mail.com"></div>
+                <div class="form-group"><label>رقم الهوية</label><input type="text" id="fNid" placeholder="10 أرقام"></div>
+                <div class="form-group" id="fgSpec"><label>التخصص *</label><select id="fSpec"><option value="">اختر التخصص</option></select><span class="form-error">يرجى اختيار التخصص</span></div>
+                <div class="form-group" id="fgDoctor"><label>الطبيب المعالج *</label><select id="fDoctor"><option value="">اختر الطبيب</option></select><span class="form-error">يرجى اختيار الطبيب</span></div>
+                <div class="form-group"><label>الحالة</label><select id="fStatus"><option value="active">نشط</option><option value="pending">قيد المراجعة</option><option value="inactive">غير نشط</option></select></div>
+                <div class="form-group full"><label>ملاحظات</label><textarea id="fNotes" placeholder="أي ملاحظات إضافية عن المريض…"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="cancelModal">إلغاء</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">حفظ المريض</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-backdrop" id="deleteModal">
+    <div class="modal" style="max-width:400px;">
+        <div class="modal-header"><h3>تأكيد الحذف</h3><button class="modal-close" id="closeDeleteModal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/></svg></button></div>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">هل أنت متأكد من حذف المريض <strong id="deletePatientName"></strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelDeleteModal">إلغاء</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg>حذف نهائياً</button>
+        </div>
+    </div>
+</div>
+
+<button class="float-search" id="floatSearch" title="بحث سريع"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg></button>
+
+<script src="./assets/js/data.js"></script>
+<script src="./assets/js/notifications.js"></script>
+<script src="./assets/js/main.js"></script>
+<script>
+(function(){
+    const PAGE_SIZE = 10;
+    let page = 1, filtered = [], deleteId = null, isGrid = false;
+
+    // populate selects
+    DB.specialties.forEach(s => { document.getElementById('fSpec').innerHTML += `<option value="${s}">${s}</option>`; });
+    DB.doctorsList.forEach(d => { document.getElementById('fDoctor').innerHTML += `<option value="${d}">${d}</option>`; });
+
+    function stats(){
+        const p = DB.getPatients();
+        document.getElementById('statTotal').textContent   = p.length;
+        document.getElementById('statActive').textContent  = p.filter(x=>x.status==='active').length;
+        document.getElementById('statPending').textContent = p.filter(x=>x.status==='pending').length;
+        document.getElementById('statInactive').textContent= p.filter(x=>x.status==='inactive').length;
+    }
+
+    function ini(n){ return (n||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join(''); }
+
+    function row(p){
+        const tr = document.createElement('tr');
+        tr.innerHTML=`
+        <td><div class="doctor-cell"><div class="avatar"><span class="initials">${ini(p.firstName+' '+p.lastName)}</span></div><div><div class="doc-name">${p.firstName} ${p.lastName}</div><div class="doc-id">#${p.id}</div></div></div></td>
+        <td>${p.age?p.age+' سنة':'—'}</td><td>${p.specialty||'—'}</td><td>${p.doctor||'—'}</td>
+        <td>${DB.formatDate(p.lastVisit)}</td>
+        <td><span class="badge ${DB.statusClass(p.status)}">${DB.statusLabel(p.status)}</span></td>
+        <td><div class="table-actions">
+            <button class="tbl-btn edit" data-id="${p.id}" title="تعديل"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83l3.75 3.75z"/></svg></button>
+            <button class="tbl-btn delete" data-id="${p.id}" title="حذف"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg></button>
+        </div></td>`;
+        return tr;
+    }
+
+    function card(p){
+        const d = document.createElement('div'); d.className='patient-card';
+        d.innerHTML=`
+        <div class="patient-card-top">
+            <div class="patient-avatar">${ini(p.firstName+' '+p.lastName)}</div>
+            <div class="patient-info"><div class="p-name">${p.firstName} ${p.lastName}</div><div class="p-id">#${p.id}</div></div>
+            <span class="badge ${DB.statusClass(p.status)}" style="margin-right:auto;">${DB.statusLabel(p.status)}</span>
+        </div>
+        <div class="patient-details">
+            <div class="p-detail"><span>العمر</span>${p.age?p.age+' سنة':'—'}</div>
+            <div class="p-detail"><span>التخصص</span>${p.specialty||'—'}</div>
+            <div class="p-detail"><span>الطبيب</span>${p.doctor||'—'}</div>
+            <div class="p-detail"><span>آخر زيارة</span>${DB.formatDate(p.lastVisit)}</div>
+        </div>
+        <div class="patient-card-actions">
+            <button class="btn btn-outline btn-sm tbl-btn edit" data-id="${p.id}">تعديل</button>
+            <a href="appointments.html" class="btn btn-primary btn-sm" style="text-decoration:none;">حجز موعد</a>
+        </div>`;
+        return d;
+    }
+
+    function render(){
+        const tb = document.getElementById('patientsTableBody');
+        const gr = document.getElementById('patientsGrid');
+        tb.innerHTML=''; gr.innerHTML='';
+        const start=(page-1)*PAGE_SIZE, slice=filtered.slice(start,start+PAGE_SIZE);
+        if(!slice.length){
+            tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">لا توجد نتائج مطابقة للبحث</td></tr>`;
+        } else {
+            slice.forEach(p=>{ tb.appendChild(row(p)); gr.appendChild(card(p)); });
+        }
+        document.getElementById('tableInfo').textContent=`عرض ${start+1}–${Math.min(start+PAGE_SIZE,filtered.length)} من أصل ${filtered.length} مريض`;
+        buildPagination();
+        // row actions
+        document.querySelectorAll('.tbl-btn.edit').forEach(b=>b.addEventListener('click',()=>openEdit(b.dataset.id)));
+        document.querySelectorAll('.tbl-btn.delete').forEach(b=>b.addEventListener('click',()=>openDelete(b.dataset.id)));
+    }
+
+    function buildPagination(){
+        const total=Math.ceil(filtered.length/PAGE_SIZE), pg=document.getElementById('pagination');
+        pg.innerHTML='';
+        const btn=(t,cb,dis,act)=>{const b=document.createElement('button');b.textContent=t;if(dis)b.disabled=true;if(act)b.classList.add('active');b.addEventListener('click',cb);pg.appendChild(b);};
+        btn('‹',()=>{page--;render();},page===1);
+        for(let i=1;i<=total;i++){
+            if(total>7&&i>3&&i<total-2&&Math.abs(i-page)>1){if(i===4){btn('…',()=>{},true);}continue;}
+            btn(i,()=>{page=i;render();},false,i===page);
+        }
+        btn('›',()=>{page++;render();},page===total||total===0);
+    }
+
+    function applyFilters(){
+        const q=(document.getElementById('tableSearch').value||'').toLowerCase();
+        const s=document.getElementById('statusFilter').value;
+        const sp=document.getElementById('specFilter').value;
+        filtered=DB.getPatients().filter(p=>{
+            const name=(p.firstName+' '+p.lastName).toLowerCase();
+            return (!q||name.includes(q)||p.id.toLowerCase().includes(q)||(p.specialty||'').toLowerCase().includes(q)||(p.doctor||'').toLowerCase().includes(q))
+                &&(!s||p.status===s)&&(!sp||p.specialty===sp);
+        });
+        page=1; render();
+    }
+
+    // global search bar mirrors table search
+    document.getElementById('globalSearch').addEventListener('input',e=>{
+        document.getElementById('tableSearch').value=e.target.value;
+        applyFilters();
+    });
+    document.getElementById('tableSearch').addEventListener('input',applyFilters);
+    document.getElementById('statusFilter').addEventListener('change',applyFilters);
+    document.getElementById('specFilter').addEventListener('change',applyFilters);
+
+    // view toggle
+    document.getElementById('tableViewBtn').addEventListener('click',()=>{
+        isGrid=false;
+        document.getElementById('tableView').style.display='';
+        document.getElementById('gridView').style.display='none';
+        document.getElementById('tableViewBtn').classList.add('active');
+        document.getElementById('gridViewBtn').classList.remove('active');
+    });
+    document.getElementById('gridViewBtn').addEventListener('click',()=>{
+        isGrid=true;
+        document.getElementById('tableView').style.display='none';
+        document.getElementById('gridView').style.display='';
+        document.getElementById('gridViewBtn').classList.add('active');
+        document.getElementById('tableViewBtn').classList.remove('active');
+    });
+
+    // ── Modals ──
+    function openM(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+    function closeM(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+
+    // Add
+    document.getElementById('addPatientBtn').addEventListener('click',()=>{
+        document.getElementById('modalTitle').textContent='إضافة مريض جديد';
+        document.getElementById('submitBtn').textContent='حفظ المريض';
+        document.getElementById('patientForm').reset();
+        document.getElementById('editPatientId').value='';
+        clearErrors();
+        openM('patientModal');
+    });
+    document.getElementById('closeModal').addEventListener('click',()=>closeM('patientModal'));
+    document.getElementById('cancelModal').addEventListener('click',()=>closeM('patientModal'));
+
+    // Edit
+    function openEdit(id){
+        const p=DB.getPatients().find(x=>x.id===id); if(!p)return;
+        document.getElementById('modalTitle').textContent='تعديل بيانات المريض';
+        document.getElementById('submitBtn').textContent='حفظ التعديلات';
+        document.getElementById('editPatientId').value=id;
+        document.getElementById('fFirstName').value=p.firstName||'';
+        document.getElementById('fLastName').value=p.lastName||'';
+        document.getElementById('fPhone').value=p.phone||'';
+        document.getElementById('fAge').value=p.age||'';
+        document.getElementById('fEmail').value=p.email||'';
+        document.getElementById('fNid').value=p.nid||'';
+        document.getElementById('fSpec').value=p.specialty||'';
+        document.getElementById('fDoctor').value=p.doctor||'';
+        document.getElementById('fStatus').value=p.status||'active';
+        document.getElementById('fNotes').value=p.notes||'';
+        clearErrors();
+        openM('patientModal');
+    }
+
+    // Form submit
+    document.getElementById('patientForm').addEventListener('submit',e=>{
+        e.preventDefault();
+        if(!validate())return;
+        const data={
+            firstName:document.getElementById('fFirstName').value.trim(),
+            lastName:document.getElementById('fLastName').value.trim(),
+            phone:document.getElementById('fPhone').value.trim(),
+            age:document.getElementById('fAge').value||null,
+            email:document.getElementById('fEmail').value.trim(),
+            nid:document.getElementById('fNid').value.trim(),
+            specialty:document.getElementById('fSpec').value,
+            doctor:document.getElementById('fDoctor').value,
+            status:document.getElementById('fStatus').value,
+            notes:document.getElementById('fNotes').value.trim(),
+        };
+        const editId=document.getElementById('editPatientId').value;
+        if(editId){ DB.updatePatient(editId,data); showToast('تم تحديث بيانات المريض بنجاح','success'); }
+        else { DB.addPatient(data); showToast('تم إضافة المريض بنجاح','success'); }
+        closeM('patientModal');
+        applyFilters(); stats(); refreshNotifBadge();
+    });
+
+    // Delete
+    function openDelete(id){
+        const p=DB.getPatients().find(x=>x.id===id); if(!p)return;
+        deleteId=id;
+        document.getElementById('deletePatientName').textContent=p.firstName+' '+p.lastName;
+        openM('deleteModal');
+    }
+    document.getElementById('confirmDeleteBtn').addEventListener('click',()=>{
+        if(!deleteId)return;
+        const p=DB.getPatients().find(x=>x.id===deleteId);
+        DB.deletePatient(deleteId);
+        closeM('deleteModal');
+        showToast(`تم حذف المريض ${p?p.firstName+' '+p.lastName:''}','error`);
+        deleteId=null;
+        applyFilters(); stats();
+    });
+    document.getElementById('closeDeleteModal').addEventListener('click',()=>closeM('deleteModal'));
+    document.getElementById('cancelDeleteModal').addEventListener('click',()=>closeM('deleteModal'));
+
+    // Validation
+    function validate(){
+        let ok=true;
+        const req=[
+            {id:'fFirstName',fg:'fgFirstName'},
+            {id:'fPhone',fg:'fgPhone'},
+            {id:'fLastName',fg:'fgLastName'},
+            {id:'fSpec',fg:'fgSpec'},
+            {id:'fDoctor',fg:'fgDoctor'},
+        ];
+        req.forEach(({id,fg})=>{
+            const v=document.getElementById(id).value.trim();
+            const fg_el=document.getElementById(fg);
+            if(!v){fg_el.classList.add('has-error');ok=false;}
+            else{fg_el.classList.remove('has-error');}
+        });
+        return ok;
+    }
+    function clearErrors(){
+        document.querySelectorAll('.form-group.has-error').forEach(el=>el.classList.remove('has-error'));
+    }
+
+    // Export CSV
+    document.getElementById('exportBtn').addEventListener('click',()=>{
+        const pts=DB.getPatients();
+        const rows=[['الرقم','الاسم','العمر','التخصص','الطبيب','آخر زيارة','الحالة']];
+        pts.forEach(p=>rows.push([p.id,p.firstName+' '+p.lastName,p.age||'',p.specialty||'',p.doctor||'',p.lastVisit||'',DB.statusLabel(p.status)]));
+        const csv=rows.map(r=>r.join(',')).join('\n');
+        const a=document.createElement('a');
+        a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+        a.download='patients.csv'; a.click();
+        showToast('تم تصدير ملف CSV بنجاح','info');
+    });
+
+    // Float search
+    document.getElementById('floatSearch').addEventListener('click',()=>{
+        document.getElementById('tableSearch').focus();
+        document.getElementById('tableSearch').scrollIntoView({behavior:'smooth',block:'center'});
+    });
+
+    // close modals on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(bd=>{
+        bd.addEventListener('click',e=>{if(e.target===bd){bd.classList.remove('open');document.body.style.overflow='';}});
+    });
+
+    // init
+    applyFilters(); stats();
+})();
+</script>
+</body>
+</html>

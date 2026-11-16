@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعدادات — عيادة التميز</title>
+    <link rel="stylesheet" href="./assets/css/init.css">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="./assets/css/animation.css">
+    <link rel="stylesheet" href="./assets/css/media.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        .notif-panel{display:none;position:absolute;top:44px;left:0;width:340px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:500;overflow:hidden;}
+        .notif-panel.open{display:block;}
+        .notif-badge-dot{position:absolute;top:7px;left:7px;min-width:16px;height:16px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:50px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid #fff;}
+        .settings-layout{display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;}
+        @media(max-width:768px){.settings-layout{grid-template-columns:1fr;}}
+        .settings-nav{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;position:sticky;top:76px;}
+        .s-nav-item{display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;border-bottom:1px solid var(--border-light);transition:background .2s,color .2s;}
+        .s-nav-item:last-child{border-bottom:none;}
+        .s-nav-item svg{width:17px;height:17px;color:var(--text-muted);flex-shrink:0;}
+        .s-nav-item:hover{background:var(--bg);color:var(--text-primary);}
+        .s-nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:700;}
+        .s-nav-item.active svg{color:var(--primary);}
+        .s-panel{display:none;}
+        .s-panel.active{display:flex;flex-direction:column;gap:16px;}
+        .s-section{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+        .s-hdr{padding:16px 20px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px;}
+        .s-hdr svg{width:18px;height:18px;color:var(--primary);flex-shrink:0;}
+        .s-hdr h3{font-size:14px;font-weight:700;}
+        .s-hdr p{font-size:12px;color:var(--text-muted);margin-top:1px;}
+        .s-body{padding:20px;}
+        .fr2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+        .fr1{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;}
+        @media(max-width:600px){.fr2{grid-template-columns:1fr;}}
+        .fg{display:flex;flex-direction:column;gap:5px;}
+        .fg label{font-size:12px;font-weight:600;color:var(--text-secondary);}
+        .fg input,.fg select,.fg textarea{padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font);color:var(--text-primary);background:var(--white);transition:border-color .2s,box-shadow .2s;}
+        .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.08);outline:none;}
+        .fg.has-error input,.fg.has-error select{border-color:var(--danger);}
+        .fg .err{font-size:11px;color:var(--danger);display:none;margin-top:2px;}
+        .fg.has-error .err{display:block;}
+        .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light);}
+        .toggle-row:last-child{border-bottom:none;}
+        .tl h5{font-size:13px;font-weight:600;}
+        .tl p{font-size:12px;color:var(--text-muted);margin-top:2px;}
+        .tsw{position:relative;width:42px;height:24px;flex-shrink:0;}
+        .tsw input{opacity:0;width:0;height:0;position:absolute;}
+        .tslider{position:absolute;inset:0;background:var(--border);border-radius:50px;cursor:pointer;transition:background .2s;}
+        .tslider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+        .tsw input:checked+.tslider{background:var(--primary);}
+        .tsw input:checked+.tslider::before{transform:translateX(18px);}
+        .pw-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden;margin-top:6px;}
+        .pw-fill{height:100%;border-radius:2px;width:0;transition:width .3s,background .3s;}
+        .av-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+        .av-big{width:72px;height:72px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--primary);flex-shrink:0;border:3px solid var(--primary-mid);overflow:hidden;}
+        .av-big img{width:100%;height:100%;object-fit:cover;}
+        .sys-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light);}
+        .sys-row:last-child{border-bottom:none;}
+        .session-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg);border-radius:var(--radius-md);margin-bottom:8px;}
+        .session-row:last-child{margin-bottom:0;}
+        .danger-zone{border:1px solid var(--danger-border);border-radius:var(--radius-lg);padding:16px 20px;background:var(--danger-bg);}
+        .danger-zone h4{color:var(--danger);font-size:14px;margin-bottom:6px;}
+        .danger-zone p{font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6;}
+        .save-row{display:flex;justify-content:flex-end;margin-top:14px;}
+    </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon"><img src="./assets/imgs/loogoo.jpeg" alt=""></div>
+        <div class="logo-text"><h2 class="js-clinic-name">عيادة التميز</h2><p class="js-doctor-name">د. أحمد محمد</p></div>
+    </div>
+    <span class="nav-label">القائمة الرئيسية</span>
+    <nav class="sidebar-nav">
+        <a href="index.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8z"/></svg><span>الرئيسية</span></a>
+        <a href="patients.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3m-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5m8 0c-.29 0-.62.02-.97.05c1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/></svg><span>المرضى</span></a>
+        <a href="appointments.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg><span>المواعيد</span><span class="notif-count js-apt-count" style="display:none"></span></a>
+        <a href="reports.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7v2m3-4H7v-2h10v2m0-4H7V7h10v2"/></svg><span>التقارير</span></a>
+        <a href="settings.html" class="active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.47.47 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6"/></svg><span>الإعدادات</span></a>
+    </nav>
+    <a href="appointments.html" class="sidebar-new-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg><span>موعد جديد</span></a>
+    <div class="sidebar-bottom">
+        <span class="nav-label">الحساب</span>
+        <a href="settings.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 17.93V18h-2v1.93A8 8 0 0 1 4.07 13H6v-2H4.07A8 8 0 0 1 11 4.07V6h2V4.07A8 8 0 0 1 19.93 11H18v2h1.93A8 8 0 0 1 13 19.93"/></svg><span>المساعدة</span></a>
+        <a href="#" class="logout"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4z"/></svg><span>تسجيل الخروج</span></a>
+    </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main-wrapper">
+    <header class="topbar">
+        <button class="topbar-burger" id="burgerBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3zm0-5h18v-2H3zm0-7v2h18V6z"/></svg></button>
+        <div class="topbar-search">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"/></svg>
+                <input type="text" id="globalSearch" placeholder="بحث…">
+            </div>
+        </div>
+        <div class="topbar-actions">
+            <div style="position:relative;">
+                <button class="topbar-icon-btn" id="notifBtn" title="الإشعارات">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2m6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z"/></svg>
+                    <span class="notif-badge-dot js-notif-badge">0</span>
+                </button>
+                <div class="notif-panel" id="notifPanel"></div>
+            </div>
+            <div class="topbar-divider"></div>
+            <div class="topbar-user" style="cursor:default;">
+                <div class="avatar"><img src="./assets/imgs/unnamed.png" alt="" id="topbarAvatar"></div>
+                <div class="user-info"><div class="name js-doctor-name">د. أحمد محمد</div><div class="role">مدير النظام</div></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="page-header">
+            <div class="page-title"><h1>الإعدادات</h1><p>إدارة إعدادات الحساب والنظام</p></div>
+        </div>
+
+        <div class="settings-layout">
+
+            <!-- NAV -->
+            <div class="settings-nav">
+                <div class="s-nav-item active" data-panel="profile"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"/></svg>الملف الشخصي</div>
+                <div class="s-nav-item" data-panel="clinic"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7V3H2v18h20V7zm-2 12H4v-2h6zm0-4H4v-2h6zm0-4H4V9h6zm0-4H4V5h6zm10 12h-8V9h8zm-2-8h-4v2h4zm0 4h-4v2h4z"/></svg>بيانات العيادة</div>
+                <div class="s-nav-item" data-panel="notifications"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2m6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z"/></svg>الإشعارات</div>
+                <div class="s-nav-item" data-panel="security"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg>الأمان</div>
+                <div class="s-nav-item" data-panel="system"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 14H4V6h16z"/></svg>النظام</div>
+                <div class="s-nav-item" data-panel="data"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4s8-1.79 8-4s-3.58-4-8-4M4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4m0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4"/></svg>البيانات والخصوصية</div>
+            </div>
+
+            <!-- PANELS -->
+            <div>
+
+                <!-- ① PROFILE -->
+                <div class="s-panel active" id="panel-profile">
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"/></svg><div><h3>الملف الشخصي</h3><p>تحديث معلوماتك الشخصية</p></div></div>
+                        <div class="s-body">
+                            <div class="av-row">
+                                <div class="av-big"><img src="./assets/imgs/unnamed.png" alt="" id="profileAvImg"></div>
+                                <div>
+                                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('avInput').click()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16h6v-6h4l-7-7l-7 7h4zm-4 2h14v2H5z"/></svg>تغيير الصورة</button>
+                                    <input type="file" id="avInput" accept="image/*" style="display:none">
+                                    <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">PNG أو JPG · حد أقصى 2MB</p>
+                                </div>
+                            </div>
+                            <form id="profileForm" novalidate>
+                                <div class="fr2">
+                                    <div class="fg" id="fg-pF"><label>الاسم الأول *</label><input id="pF" placeholder="أحمد"><span class="err">مطلوب</span></div>
+                                    <div class="fg" id="fg-pL"><label>الاسم الأخير *</label><input id="pL" placeholder="محمد"><span class="err">مطلوب</span></div>
+                                </div>
+                                <div class="fr2">
+                                    <div class="fg"><label>البريد الإلكتروني</label><input type="email" id="pEmail" placeholder="admin@clinic.com"></div>
+                                    <div class="fg"><label>رقم الجوال</label><input type="tel" id="pPhone" placeholder="05xxxxxxxx"></div>
+                                </div>
+                                <div class="fr2">
+                                    <div class="fg"><label>التخصص الطبي</label><input id="pSpec" placeholder="طب عام"></div>
+                                    <div class="fg"><label>رقم الترخيص</label><input id="pLic" placeholder="SA-XXXXX"></div>
+                                </div>
+                                <div class="save-row"><button type="submit" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3s3 1.34 3 3s-1.34 3-3 3m3-10H5V5h10z"/></svg>حفظ التغييرات</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ② CLINIC -->
+                <div class="s-panel" id="panel-clinic">
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7V3H2v18h20V7z"/></svg><div><h3>بيانات العيادة</h3><p>المعلومات الأساسية للعيادة</p></div></div>
+                        <div class="s-body">
+                            <form id="clinicForm">
+                                <div class="fr2"><div class="fg"><label>اسم العيادة</label><input id="cName" placeholder="عيادة التميز"></div><div class="fg"><label>رقم الهاتف</label><input type="tel" id="cPhone" placeholder="0112345678"></div></div>
+                                <div class="fr2"><div class="fg"><label>المدينة</label><input id="cCity" placeholder="الرياض"></div><div class="fg"><label>الحي</label><input id="cDistrict" placeholder="حي النخيل"></div></div>
+                                <div class="fr1"><div class="fg"><label>العنوان الكامل</label><input id="cAddress" placeholder="شارع الأمير محمد بن عبدالعزيز"></div></div>
+                                <div class="fr2"><div class="fg"><label>البريد الإلكتروني</label><input type="email" id="cEmail" placeholder="info@clinic.com"></div><div class="fg"><label>الموقع الإلكتروني</label><input type="url" id="cWebsite" placeholder="https://clinic.com"></div></div>
+                                <div class="save-row"><button type="submit" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3s3 1.34 3 3s-1.34 3-3 3m3-10H5V5h10z"/></svg>حفظ بيانات العيادة</button></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ③ NOTIFICATIONS -->
+                <div class="s-panel" id="panel-notifications">
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2m6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z"/></svg><div><h3>إعدادات الإشعارات</h3><p>تحكم في كيفية تلقيك للإشعارات</p></div></div>
+                        <div class="s-body">
+                            <div class="toggle-row"><div class="tl"><h5>إشعارات المواعيد</h5><p>تلقي إشعار عند إضافة أو تعديل موعد</p></div><label class="tsw"><input type="checkbox" id="togApt"><span class="tslider"></span></label></div>
+                            <div class="toggle-row"><div class="tl"><h5>إشعارات المرضى الجدد</h5><p>تلقي إشعار عند تسجيل مريض جديد</p></div><label class="tsw"><input type="checkbox" id="togPatient"><span class="tslider"></span></label></div>
+                            <div class="toggle-row"><div class="tl"><h5>إشعارات البريد الإلكتروني</h5><p>إرسال ملخص يومي على البريد</p></div><label class="tsw"><input type="checkbox" id="togEmail"><span class="tslider"></span></label></div>
+                            <div class="toggle-row"><div class="tl"><h5>الصوت</h5><p>تشغيل صوت عند وصول إشعار</p></div><label class="tsw"><input type="checkbox" id="togSound"><span class="tslider"></span></label></div>
+                            <div class="toggle-row"><div class="tl"><h5>تنبيهات الأمان</h5><p>تلقي تنبيه عند محاولات الدخول الفاشلة</p></div><label class="tsw"><input type="checkbox" id="togSec"><span class="tslider"></span></label></div>
+                            <div class="save-row"><button class="btn btn-primary" id="saveNotifBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3s3 1.34 3 3s-1.34 3-3 3m3-10H5V5h10z"/></svg>حفظ الإعدادات</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ④ SECURITY -->
+                <div class="s-panel" id="panel-security">
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5z"/></svg><div><h3>تغيير كلمة المرور</h3><p>استخدم كلمة مرور قوية لحماية حسابك</p></div></div>
+                        <div class="s-body">
+                            <form id="pwForm" novalidate>
+                                <div class="fr1"><div class="fg" id="fg-pwC"><label>كلمة المرور الحالية *</label><input type="password" id="pwC" placeholder="••••••••"><span class="err">أدخل كلمة المرور الحالية</span></div></div>
+                                <div class="fr1">
+                                    <div class="fg" id="fg-pwN">
+                                        <label>كلمة المرور الجديدة * <span id="pwLbl" style="font-weight:400;color:var(--text-muted);font-size:11px;"></span></label>
+                                        <input type="password" id="pwN" placeholder="8 أحرف على الأقل">
+                                        <div class="pw-bar"><div class="pw-fill" id="pwFill"></div></div>
+                                        <span class="err">يجب أن تكون 8 أحرف على الأقل</span>
+                                    </div>
+                                </div>
+                                <div class="fr1"><div class="fg" id="fg-pwK"><label>تأكيد كلمة المرور *</label><input type="password" id="pwK" placeholder="••••••••"><span class="err">كلمتا المرور غير متطابقتين</span></div></div>
+                                <div class="save-row"><button type="submit" class="btn btn-primary">تحديث كلمة المرور</button></div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg><div><h3>جلسات الدخول النشطة</h3><p>الأجهزة المتصلة حالياً بحسابك</p></div></div>
+                        <div class="s-body">
+                            <div class="session-row">
+                                <div><div style="font-size:13px;font-weight:600;">🖥️ Windows · Chrome · الرياض</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">هذا الجهاز الحالي</div></div>
+                                <span class="badge badge-active">نشط الآن</span>
+                            </div>
+                            <div class="session-row" id="iPhoneSession">
+                                <div><div style="font-size:13px;font-weight:600;">📱 iPhone · Safari · جدة</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;">منذ يومين</div></div>
+                                <button class="btn btn-danger btn-sm" id="endSessionBtn">إنهاء الجلسة</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⑤ SYSTEM -->
+                <div class="s-panel" id="panel-system">
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 14H4V6h16z"/></svg><div><h3>إعدادات النظام</h3><p>اللغة، المظهر، وخيارات العرض</p></div></div>
+                        <div class="s-body">
+                            <div class="fr2"><div class="fg"><label>اللغة</label><select id="sysLang"><option value="ar">العربية</option><option value="en">English</option></select></div><div class="fg"><label>المظهر</label><select id="sysTheme"><option value="light">فاتح</option><option value="dark">داكن (قريباً)</option><option value="auto">تلقائي</option></select></div></div>
+                            <div class="fr2"><div class="fg"><label>تسجيل خروج تلقائي</label><select id="sysLogout"><option value="15">بعد 15 دقيقة</option><option value="30">بعد 30 دقيقة</option><option value="60">بعد ساعة</option><option value="0">لا يوجد</option></select></div><div class="fg"><label>حجم صفحة الجداول</label><select id="sysPage"><option value="10">10 صفوف</option><option value="25">25 صفاً</option><option value="50">50 صفاً</option></select></div></div>
+                            <div class="toggle-row"><div class="tl"><h5>الحركة والتأثيرات</h5><p>تشغيل تأثيرات الحركة في الواجهة</p></div><label class="tsw"><input type="checkbox" id="togAnim"><span class="tslider"></span></label></div>
+                            <div class="save-row"><button class="btn btn-primary" id="saveSysBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3s3 1.34 3 3s-1.34 3-3 3m3-10H5V5h10z"/></svg>حفظ الإعدادات</button></div>
+                        </div>
+                    </div>
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z"/></svg><div><h3>معلومات النظام</h3></div></div>
+                        <div class="s-body">
+                            <div class="sys-row"><span style="font-size:13px;color:var(--text-secondary);">إصدار التطبيق</span><span style="font-size:13px;font-weight:600;">v2.4.1</span></div>
+                            <div class="sys-row"><span style="font-size:13px;color:var(--text-secondary);">المتصفح</span><span style="font-size:13px;font-weight:600;" id="siBrowser">—</span></div>
+                            <div class="sys-row"><span style="font-size:13px;color:var(--text-secondary);">حجم البيانات</span><span style="font-size:13px;font-weight:600;" id="siStorage">—</span></div>
+                            <div class="sys-row"><span style="font-size:13px;color:var(--text-secondary);">عدد المرضى</span><span style="font-size:13px;font-weight:600;" id="siPatients">—</span></div>
+                            <div class="sys-row"><span style="font-size:13px;color:var(--text-secondary);">عدد المواعيد</span><span style="font-size:13px;font-weight:600;" id="siApts">—</span></div>
+                            <div class="sys-row"><span style="font-size:13px;color:var(--text-secondary);">حالة النظام</span><span style="font-size:13px;font-weight:600;color:var(--success);">مثالية ✓</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⑥ DATA -->
+                <div class="s-panel" id="panel-data">
+                    <div class="s-section">
+                        <div class="s-hdr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4s8-1.79 8-4s-3.58-4-8-4M4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4m0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4"/></svg><div><h3>البيانات والخصوصية</h3><p>تصدير أو حذف بيانات النظام</p></div></div>
+                        <div class="s-body">
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);">
+                                    <div><div style="font-size:13px;font-weight:600;">تصدير بيانات المرضى</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">تنزيل جميع بيانات المرضى بصيغة CSV</div></div>
+                                    <button class="btn btn-outline btn-sm" id="expPBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>تصدير</button>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:var(--radius-md);">
+                                    <div><div style="font-size:13px;font-weight:600;">تصدير بيانات المواعيد</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">تنزيل جميع بيانات المواعيد بصيغة CSV</div></div>
+                                    <button class="btn btn-outline btn-sm" id="expABtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7zm-8 2V5h2v6h1.17L12 13.17L9.83 11zm-6 8h14v2H5z"/></svg>تصدير</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="danger-zone">
+                        <h4>⚠️ منطقة الخطر</h4>
+                        <p>هذه الإجراءات لا يمكن التراجع عنها. سيتم حذف جميع البيانات وإعادتها للحالة الافتراضية.</p>
+                        <button class="btn btn-danger" id="resetBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 6v3l4-4l-4-4v3c-4.42 0-8 3.58-8 8c0 1.57.46 3.03 1.24 4.26L6.7 14.8A5.87 5.87 0 0 1 6 12c0-3.31 2.69-6 6-6m6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8c0 3.31-2.69 6-6 6v-3l-4 4l4 4v-3c4.42 0 8-3.58 8-8c0-1.57-.46-3.03-1.24-4.26"/></svg>إعادة ضبط جميع البيانات</button>
+                    </div>
+                </div>
+
+            </div><!-- /panels -->
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <span>© 2026 عيادة التميز · MedEx Precision. جميع الحقوق محفوظة.</span>
+        <div class="footer-status"><span class="status-dot">حالة النظام: مثالية</span></div>
+    </footer>
+</div>
+
+<script src="./assets/js/data.js"></script>
+<script src="./assets/js/notifications.js"></script>
+<script src="./assets/js/main.js"></script>
+<script>
+(function () {
+
+    // ══ TABS ══════════════════════════════════
+    document.querySelectorAll('.s-nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.s-nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.s-panel').forEach(p => p.classList.remove('active'));
+            item.classList.add('active');
+            document.getElementById('panel-' + item.dataset.panel).classList.add('active');
+        });
+    });
+
+    // ══ LOAD ══════════════════════════════════
+    function load() {
+        const s = DB.getSettings();
+        const name = (s.doctorName || 'د. أحمد محمد').replace('د. ', '').split(' ');
+        v('pF', name[0] || '');
+        v('pL', name.slice(1).join(' ') || '');
+        v('pEmail', s.email || '');
+        v('pPhone', s.phone || '');
+        v('pSpec', s.specialty || '');
+        v('pLic', s.license || '');
+        v('cName', s.clinicName || '');
+        v('cPhone', s.clinicPhone || '');
+        v('cCity', s.city || '');
+        v('cDistrict', s.district || '');
+        v('cAddress', s.address || '');
+        v('cEmail', s.clinicEmail || '');
+        v('cWebsite', s.website || '');
+        chk('togApt',     s.notifApt     !== false);
+        chk('togPatient', s.notifPatient !== false);
+        chk('togEmail',   !!s.emailNotif);
+        chk('togSound',   s.notifSound   !== false);
+        chk('togSec',     s.notifSec     !== false);
+        v('sysLang',   s.language   || 'ar');
+        v('sysTheme',  s.theme      || 'light');
+        v('sysLogout', s.autoLogout || '30');
+        v('sysPage',   s.pageSize   || '10');
+        chk('togAnim', s.animations !== false);
+    }
+    function v(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+    function chk(id, val) { const el = document.getElementById(id); if (el) el.checked = val; }
+    function checked(id) { return document.getElementById(id)?.checked || false; }
+    function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+    // ══ AVATAR ════════════════════════════════
+    document.getElementById('avInput').addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showToast('حجم الصورة يتجاوز 2MB', 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('profileAvImg').src = e.target.result;
+            document.getElementById('topbarAvatar').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        showToast('تم تحميل الصورة', 'success');
+    });
+
+    // ══ ① PROFILE ═════════════════════════════
+    document.getElementById('profileForm').addEventListener('submit', e => {
+        e.preventDefault();
+        let ok = true;
+        [['pF','fg-pF'],['pL','fg-pL']].forEach(([id, fg]) => {
+            const el = document.getElementById(id), fg_el = document.getElementById(fg);
+            if (!el.value.trim()) { fg_el.classList.add('has-error'); ok = false; }
+            else fg_el.classList.remove('has-error');
+        });
+        if (!ok) return;
+        const s = DB.getSettings();
+        s.doctorName = 'د. ' + val('pF') + ' ' + val('pL');
+        s.email      = val('pEmail');
+        s.phone      = val('pPhone');
+        s.specialty  = val('pSpec');
+        s.license    = val('pLic');
+        DB.saveSettings(s);
+        document.querySelectorAll('.js-doctor-name').forEach(el => el.textContent = s.doctorName);
+        showToast('تم حفظ الملف الشخصي', 'success');
+    });
+
+    // ══ ② CLINIC ══════════════════════════════
+    document.getElementById('clinicForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const s = DB.getSettings();
+        s.clinicName  = val('cName');
+        s.clinicPhone = val('cPhone');
+        s.city        = val('cCity');
+        s.district    = val('cDistrict');
+        s.address     = val('cAddress');
+        s.clinicEmail = val('cEmail');
+        s.website     = val('cWebsite');
+        DB.saveSettings(s);
+        document.querySelectorAll('.js-clinic-name').forEach(el => { if (s.clinicName) el.textContent = s.clinicName; });
+        showToast('تم حفظ بيانات العيادة', 'success');
+    });
+
+    // ══ ③ NOTIFICATIONS ═══════════════════════
+    document.getElementById('saveNotifBtn').addEventListener('click', () => {
+        const s = DB.getSettings();
+        s.notifApt     = checked('togApt');
+        s.notifPatient = checked('togPatient');
+        s.emailNotif   = checked('togEmail');
+        s.notifSound   = checked('togSound');
+        s.notifSec     = checked('togSec');
+        DB.saveSettings(s);
+        showToast('تم حفظ إعدادات الإشعارات', 'success');
+    });
+
+    // ══ ④ PASSWORD ════════════════════════════
+    document.getElementById('pwN').addEventListener('input', function () {
+        const v = this.value;
+        let str = 0;
+        if (v.length >= 8)           str++;
+        if (/[A-Z]/.test(v))         str++;
+        if (/[0-9]/.test(v))         str++;
+        if (/[^A-Za-z0-9]/.test(v))  str++;
+        const levels = [
+            { w: '0',   c: 'var(--border)',   t: '' },
+            { w: '25%', c: 'var(--danger)',   t: 'ضعيفة جداً' },
+            { w: '50%', c: 'var(--warning)',  t: 'ضعيفة' },
+            { w: '75%', c: 'var(--primary)',  t: 'جيدة' },
+            { w: '100%',c: 'var(--success)',  t: 'قوية جداً ✓' },
+        ];
+        const l = levels[str];
+        const fill = document.getElementById('pwFill');
+        const lbl  = document.getElementById('pwLbl');
+        fill.style.width      = l.w;
+        fill.style.background = l.c;
+        lbl.textContent       = l.t;
+        lbl.style.color       = l.c;
+    });
+
+    document.getElementById('pwForm').addEventListener('submit', e => {
+        e.preventDefault();
+        let ok = true;
+        const cur  = document.getElementById('pwC');
+        const nw   = document.getElementById('pwN');
+        const conf = document.getElementById('pwK');
+        const fgC  = document.getElementById('fg-pwC');
+        const fgN  = document.getElementById('fg-pwN');
+        const fgK  = document.getElementById('fg-pwK');
+
+        if (!cur.value) { fgC.classList.add('has-error'); ok = false; }
+        else fgC.classList.remove('has-error');
+
+        if (nw.value.length < 8) { fgN.classList.add('has-error'); ok = false; }
+        else fgN.classList.remove('has-error');
+
+        if (nw.value !== conf.value || !conf.value) { fgK.classList.add('has-error'); ok = false; }
+        else fgK.classList.remove('has-error');
+
+        if (!ok) return;
+
+        // Save hashed password hint (no real auth in front-end demo)
+        const s = DB.getSettings();
+        s.pwHint = btoa(nw.value.slice(0, 3)); // store only a hint, not real pw
+        DB.saveSettings(s);
+
+        document.getElementById('pwForm').reset();
+        document.getElementById('pwFill').style.width = '0';
+        document.getElementById('pwLbl').textContent  = '';
+        showToast('تم تحديث كلمة المرور بنجاح', 'success');
+    });
+
+    // ══ END SESSION ═══════════════════════════
+    document.getElementById('endSessionBtn').addEventListener('click', function () {
+        if (!confirm('هل تريد إنهاء جلسة iPhone؟')) return;
+        this.closest('.session-row').style.opacity = '0';
+        this.closest('.session-row').style.transition = 'opacity .3s';
+        setTimeout(() => this.closest('.session-row').remove(), 350);
+        showToast('تم إنهاء الجلسة بنجاح', 'success');
+    });
+
+    // ══ ⑤ SYSTEM ══════════════════════════════
+    document.getElementById('saveSysBtn').addEventListener('click', () => {
+        const s = DB.getSettings();
+        s.language   = val('sysLang');
+        s.theme      = val('sysTheme');
+        s.autoLogout = val('sysLogout');
+        s.pageSize   = val('sysPage');
+        s.animations = checked('togAnim');
+        DB.saveSettings(s);
+        // Apply animations toggle immediately
+        if (!s.animations) {
+            document.querySelectorAll('*').forEach(el => { el.style.animationDuration = '0s'; el.style.transitionDuration = '0s'; });
+        }
+        showToast('تم حفظ إعدادات النظام', 'success');
+    });
+
+    // System info
+    function fillSysInfo() {
+        const ua = navigator.userAgent;
+        document.getElementById('siBrowser').textContent =
+            ua.includes('Chrome') ? 'Google Chrome' :
+            ua.includes('Firefox') ? 'Mozilla Firefox' :
+            ua.includes('Safari') ? 'Safari' : 'متصفح آخر';
+        const size = JSON.stringify(localStorage).length;
+        document.getElementById('siStorage').textContent = (size / 1024).toFixed(1) + ' KB';
+        document.getElementById('siPatients').textContent = DB.getPatients().length;
+        document.getElementById('siApts').textContent     = DB.getAppointments().length;
+    }
+
+    // ══ ⑥ DATA EXPORT / RESET ════════════════
+    function csvDownload(rows, name) {
+        const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+        a.download = name; a.click();
+    }
+
+    document.getElementById('expPBtn').addEventListener('click', () => {
+        const pts = DB.getPatients();
+        const rows = [
+            ['رقم المريض','الاسم الأول','اسم العائلة','العمر','الجوال','البريد','التخصص','الطبيب','آخر زيارة','الحالة'],
+            ...pts.map(p => [p.id, p.firstName, p.lastName, p.age||'', p.phone||'', p.email||'', p.specialty||'', p.doctor||'', p.lastVisit||'', DB.statusLabel(p.status)])
+        ];
+        csvDownload(rows, 'patients-' + new Date().toISOString().slice(0,10) + '.csv');
+        showToast('تم تصدير بيانات المرضى', 'success');
+    });
+
+    document.getElementById('expABtn').addEventListener('click', () => {
+        const apts = DB.getAppointments();
+        const rows = [
+            ['رقم الموعد','اسم المريض','الطبيب','التخصص','التاريخ','الوقت','المدة','النوع','الحالة'],
+            ...apts.map(a => [a.id, a.patientName, a.doctor, a.specialty||'', a.date, a.time, a.duration, a.type||'', DB.statusLabel(a.status)])
+        ];
+        csvDownload(rows, 'appointments-' + new Date().toISOString().slice(0,10) + '.csv');
+        showToast('تم تصدير بيانات المواعيد', 'success');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        if (!confirm('⚠️ هل أنت متأكد؟\nسيتم حذف جميع البيانات وإعادتها للحالة الافتراضية.\nهذا الإجراء لا يمكن التراجع عنه.')) return;
+        Object.values(DB.KEYS).forEach(k => localStorage.removeItem(k));
+        showToast('تمت إعادة ضبط البيانات بنجاح', 'warning');
+        setTimeout(() => location.reload(), 1200);
+    });
+
+    // ══ INIT ══════════════════════════════════
+    load();
+    fillSysInfo();
+
+})();
+</script>
+</body>
+</html>
